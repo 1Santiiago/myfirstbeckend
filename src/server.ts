@@ -1,7 +1,6 @@
-const express = require("express");
-const productRoutes = require("./src/routes/products.routes");
-const usersRoutes = require("./src/routes/users.routes");
-
+import  express  from "express";
+import  userRoutes  from "./routes/users.routes";
+import  productRoutes  from "./routes/products.routes";
 const app = express();
 const PORT = 3000;
 
@@ -9,7 +8,7 @@ app.use(express.json());
 
 // rotas por entidade
 app.use("/products", productRoutes);
-app.use("/users", usersRoutes);
+app.use("/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
