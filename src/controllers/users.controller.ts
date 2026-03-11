@@ -1,81 +1,93 @@
 import { Request, Response } from "express";
-import { CreateUserBody, User } from "../types";
-import * as db from '../data/database'
+import { User } from "../models/User";
 
-
-
-
-export const getAllUsers = (req: Request, res: Response): void => {
-  res.json(db.users);
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar usuários" });
+  }
 };
 
-export const getUserById = (req: Request, res: Response): void => {
-  const userId = Number(req.params.id);
-  const user = db.users.find((u:User) => u.id === userId);
-
-  if (!user) {
-    res.status(404).json({ error: "Usuário não encontrado" });
+export const getUserById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404).json({ error: "Usuario nao encontrado" });
+      return;
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar usuário" });
   }
-  res.json(user);
 };
 
 // create user
 
-export const createUser = (req: Request, res: Response): void => {
-  const { name, email } = req.body as CreateUserBody
-  if (!name || !email) {
-    res.status(400).json({ error: "Nome e email são obrigatórios" });
+export const createUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { name, email } = req.body;
+    const user = await User.create({ name, email });
+    res.status(201).json(user);
+  } catch (error: any) {
+    // erro de email duplicado
+    if (error.code === 11000) {
+      res.status(400).json({ error: "Email já cadastrado" });
+      return;
+    }
+    res.status(500).json({ error: "Erro ao criar usuário" });
   }
-  const newUser = {
-    id: db.getNextUserId(),
-    name,
-    email,
-  };
-
-  db.users.push(newUser);
-
-  res.json({
-    message: "Usuario criado com sucesso",
-    user: newUser,
-  });
 };
 
 // editando user
 
-export const updateUser = (req: Request, res: Response): void => {
-  const userId = Number(req.params.id);
-  const userIndex = db.users.findIndex((u:User) => u.id === userId);
+export const updateUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { name, email } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, email },
+      { returnDocument: 'after' },
+    );
 
-  if (userIndex === -1) {
-    res.status(404).json({ error: "Usuario nao encontrado" });
+    if (!user) {
+      res.status(404).json({ error: "Usuario nao encontrado" });
+      return;
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar usuário" });
   }
-
-  const { name, email } = req.body as CreateUserBody;
-
-  if (!name || !email) {
-    res.status(400).json({ error: "Nome e emails são obrigatório" });
-  }
-
-  db.users[userIndex] = {
-    id: userId,
-    name,
-    email,
-  };
-
- res.json({
-    message: "Usuario atualizado",
-  });
 };
 
-export const deleteUser = (req:Request, res:Response):void => {
-  const userId = Number(req.params.id);
-  const userIndex = db.users.findIndex((u:User) => u.id === userId);
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
 
-  if (userIndex === -1) {
-     res.status(404).send();
+    if (!user) {
+      res.status(404).json({ error: "Usuario nao encontrado" });
+      return;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao deletar usuário" });
   }
-
-  db.users.splice(userIndex, 1);
- res.json({ message: "Usuario exluido com sucesso" });
 };
-
