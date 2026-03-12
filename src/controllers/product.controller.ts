@@ -1,92 +1,78 @@
-import * as db from '../data/database.js'
 import { Request, Response } from "express";
-import { CreateProductBody } from "../types/index.js";
-import { getNextProductId } from "../data/database.js"
+import { Product } from "../models/Product";
 
-
-
-export const getProducts = (_:Request, res:Response):  void => {
-   res.send(db.products);
+export const getProducts = async (_: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: "Error ao buscar produtos" });
+  }
 };
 
-export const getProductById = (req: Request, res: Response): void => {
-  const productId = Number(req.params.id);
-  const product = db.products.find((p) => p.id === productId);
+export const getProductById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const product = await Product.findById(req.params.id);
 
-  if (!product) {
-     res.status(404).json({ error: "Produto não encontrado" });
+    if (!product) {
+      res.status(404).json({ error: "Produto nao encontrado" });
+      return;
+    }
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: "Error ao buscar produtos" });
   }
- res.json(product);
 };
 
 // criar produtos
 
-export const create = (req: Request, res: Response): void =>  {
-  const { name, price } = req.body as CreateProductBody;
-  if (!name || price === undefined) {
-    res.status(400).json({ error: "Nome e preço são obrigatórios" });
+export const create = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, price } = req.body;
+    const prod = await Product.create({ name, price });
+    res.status(201).json(prod);
+  } catch (error) {
+    res.status(500).json({ error: "Error ao criar produtos" });
   }
-  const numericPrice = Number(price);
-  if (isNaN(numericPrice) || numericPrice < 0) {
-     res.status(400).json({ error: "Preço deve ser um número positivo" });
-  }
-  const newProduct = {
-    id: getNextProductId(),
-    name,
-    price: numericPrice,
-  };
-  db.products.push(newProduct);
-
-   res.json({
-    message: "Produto criado com sucesso",
-    product: newProduct,
-  });
 };
 
 //put
-export const update = (req: Request, res: Response): void => {
-  const productId = Number(req.params.id);
-  const productIndex = db.products.findIndex((p) => p.id === productId);
-
-  if (productIndex === -1) {
+export const update = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, price } = req.body;
+    const prod = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        price,
+      },
+      { returnDocument: "after" },
+    );
+    if (!prod) {
+      res.status(404).json({ error: "Produto nao encontrado" });
+      return;
+    }
+    res.json(prod);
+  } catch (error) {
     res.status(404).json({ error: "Produto não encontrado" });
   }
-
-  const { name, price } = req.body as CreateProductBody;
-
-  if (!name || price === undefined) {
-    res.status(400).json({ error: "Nome e preço são obrigatórios" });
-  }
-
-  const numericPrice = Number(price);
-
-  if (isNaN(numericPrice) || numericPrice < 0) {
-   res.status(400).json({ error: "Preço deve ser um número positivo" });
-  }
-
-  db.products[productIndex] = {
-    id: productId,
-    name,
-    price: numericPrice,
-  };
-
- res.json({
-    message: "Produto atualizado com sucesso",
-    product: db.products[productIndex],
-  });
 };
 
 // delete
 
-export const remove = (req: Request, res: Response): void => {
-  const productId = Number(req.params.id);
-  const productIndex = db.products.findIndex((p) => p.id === productId);
-
-  if (productIndex === -1) {
-    res.status(204).send();
+export const remove = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const prod = await Product.findByIdAndDelete(req.params.id)
+    if(!prod){
+       res.status(404).json({ error: "Produto não encontrado" });
+       return
+    }
+    res.status(204).send()
+  } catch (error) {
+     res.status(500).json({ error: "Erro ao deletar produto" });
   }
-  db.products.splice(productIndex, 1);
-   res.json({ message: "Produto deletado com sucesso" });
+  
 };
-
-
