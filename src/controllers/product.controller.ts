@@ -31,8 +31,8 @@ export const getProductById = async (
 
 export const create = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, price } = req.body;
-    const prod = await Product.create({ name, price });
+    const { name, price,  description } = req.body;
+    const prod = await Product.create({ name, price, description });
     res.status(201).json(prod);
   } catch (error) {
     res.status(500).json({ error: "Error ao criar produtos" });
@@ -42,12 +42,13 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 //put
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, price } = req.body;
+    const { name, price,  description } = req.body;
     const prod = await Product.findByIdAndUpdate(
       req.params.id,
       {
         name,
         price,
+         description,
       },
       { returnDocument: "after" },
     );
