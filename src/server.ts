@@ -20,7 +20,16 @@ const swaggerOptions = {
     },
     servers: [
       { url: "http://localhost:3000" }
-    ]
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT"
+        }
+      }
+    }
   },
   apis: [path.join(__dirname, "./routes/*.ts")]
 }

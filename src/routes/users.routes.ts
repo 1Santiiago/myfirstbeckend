@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticate } from "../middlewares/auth.middleware";
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from "../controllers/users.controller";
 
 const router = Router();
@@ -14,13 +15,14 @@ const router = Router();
  * @swagger
  * /users:
  *   get:
- *     summary: Lista todos os usuários
- *     tags: [Users]
+ *     summary: Lista usuários
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuários retornada com sucesso
+ *         description: Lista de usuários
  */
-router.get("/", getAllUsers);
+router.get("/", authenticate , getAllUsers);
 
 /**
  * @swagger
@@ -41,13 +43,15 @@ router.get("/", getAllUsers);
  *       404:
  *         description: Usuário não encontrado
  */
-router.get("/:id", getUserById);
+router.get("/:id", authenticate , getUserById);
 
 /**
  * @swagger
  * /users:
  *   post:
  *     summary: Cria um novo usuário
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -91,7 +95,7 @@ router.post("/", createUser);
  *       404:
  *         description: Usuário não encontrado
  */
-router.put("/:id", updateUser);
+router.put("/:id", authenticate, updateUser);
 
 /**
  * @swagger
@@ -112,6 +116,6 @@ router.put("/:id", updateUser);
  *       404:
  *         description: Usuário não encontrado
  */
-router.delete("/:id", deleteUser);
+router.delete("/:id", authenticate, deleteUser);
 
 export default router;

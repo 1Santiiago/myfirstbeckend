@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { create, getProductById, getProducts, remove, update } from "../controllers/product.controller";
+import {
+  create,
+  getProductById,
+  getProducts,
+  remove,
+  update,
+} from "../controllers/product.controller";
+import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -14,7 +21,7 @@ const router = Router();
  *       200:
  *         description: Lista de produtos retornada com sucesso
  */
-router.get("/", getProducts);
+router.get("/", authenticate, getProducts);
 
 /**
  * @swagger
@@ -36,7 +43,7 @@ router.get("/", getProducts);
  *       404:
  *         description: Produto não encontrado
  */
-router.get("/:id", getProductById);
+router.get("/:id", authenticate, getProductById);
 
 /**
  * @swagger
@@ -70,7 +77,7 @@ router.get("/:id", getProductById);
  *       400:
  *         description: Dados inválidos
  */
-router.post("/", create);
+router.post("/", authenticate, create);
 
 /**
  * @swagger
@@ -108,7 +115,7 @@ router.post("/", create);
  *       404:
  *         description: Produto não encontrado
  */
-router.put("/:id", update);
+router.put("/:id", authenticate, update);
 
 /**
  * @swagger
@@ -130,6 +137,6 @@ router.put("/:id", update);
  *       404:
  *         description: Produto não encontrado
  */
-router.delete("/:id", remove);
+router.delete("/:id", authenticate, remove);
 
 export default router;

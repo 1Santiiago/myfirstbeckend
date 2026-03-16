@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 import { User } from "../models/User";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ||
@@ -60,3 +61,19 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: "Erro ao fazer login" });
   }
 };
+
+
+//retornar usuario logado
+
+export const me = async (req:AuthRequest, res:Response): Promise<void>=>{
+  try {
+      const user = await User.findById(req.userId)
+      if(!user){
+        res.status(404).json({error: 'Usuario não encontrado'})
+        return 
+      }
+      res.json(user)
+  } catch (error) {
+     res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
+}
